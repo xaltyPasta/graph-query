@@ -2,24 +2,14 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  const paymentCount = await prisma.payment.count();
-  console.log(`Payment count: ${paymentCount}`);
-  
-  if (paymentCount > 0) {
-    const payment = await prisma.payment.findFirst({
-        include: {
-            invoice: true
-        }
-    });
-    console.log("Sample Payment:", payment);
-  }
+  console.log("Customer:", await prisma.customer.count());
+  console.log("Order:", await prisma.order.count());
+  console.log("Delivery:", await prisma.delivery.count());
+  console.log("Invoice:", await prisma.invoice.count());
+  console.log("Payment:", await prisma.payment.count());
+
+  const firstPayment = await prisma.payment.findFirst();
+  console.log("First Payment:", firstPayment);
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+main().catch(console.error).finally(() => prisma.$disconnect());

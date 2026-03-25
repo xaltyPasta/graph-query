@@ -57,6 +57,10 @@ export async function loadAllData() {
             path.join(BASE_PATH, "billing_document_headers")
         ),
 
+        invoiceItems: await readAllFiles(
+            path.join(BASE_PATH, "billing_document_items")
+        ),
+
         payments: await readAllFiles(
             path.join(BASE_PATH, "payments_accounts_receivable")
         ),

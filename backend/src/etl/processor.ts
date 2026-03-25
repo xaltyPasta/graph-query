@@ -67,21 +67,11 @@ export async function processData(data: any) {
     if (inv.billingDocument) invoiceByDocMap.set(inv.billingDocument, inv);
   }
 
-  // ──────────────────────────────────────────────
-  // INVOICE LINKAGE (soldToParty fallback)
-  //
-  // LIMITATION: This maps soldToParty → first matching invoice. This is
-  // unreliable when a single customer has multiple billing documents.
-  // A customer with 3 invoices will only have the first one linked.
-  //
-  // TODO: Replace with billing_document_items join to link invoices
-  //       directly via salesOrder → billingDocument for accurate 1:1
-  //       order-to-invoice mapping.
-  // ──────────────────────────────────────────────
-  const invoiceBySoldToMap = new Map<string, any>();
-  for (const inv of data.invoices) {
-    if (inv.soldToParty && !invoiceBySoldToMap.has(inv.soldToParty)) {
-      invoiceBySoldToMap.set(inv.soldToParty, inv);
+  // deliveryDocument → billingDocument (via invoice items)
+  const deliveryToInvoiceMap = new Map<string, string>();
+  for (const ii of data.invoiceItems) {
+    if (ii.referenceSdDocument && ii.billingDocument) {
+      deliveryToInvoiceMap.set(ii.referenceSdDocument, ii.billingDocument);
     }
   }
 
@@ -91,7 +81,7 @@ export async function processData(data: any) {
   //       (journal_entry_items_accounts_receivable) for more precise matching.
   const paymentMap = new Map<string, any>();
   for (const p of data.payments) {
-    if (p.invoiceReference) paymentMap.set(p.invoiceReference, p);
+    if (p.accountingDocument) paymentMap.set(p.accountingDocument, p);
   }
 
   // ──────────────────────────────────────────────
@@ -398,13 +388,8 @@ export async function processData(data: any) {
         });
 
         // ── 6. INVOICE ──
-        // FALLBACK LINKAGE: Uses soldToParty to match invoice.
-        // This is unreliable for customers with multiple billing documents —
-        // only the first invoice is matched.
-        //
-        // TODO: Replace with billing_document_items join to link invoices
-        //       directly via salesOrder → billingDocument for accurate mapping.
-        const invoiceRaw = invoiceBySoldToMap.get(order.soldToParty);
+        const billingDocId = deliveryToInvoiceMap.get(deliveryRaw.deliveryDocument);
+        const invoiceRaw = billingDocId ? invoiceByDocMap.get(billingDocId) : null;
         
         if (!invoiceRaw?.billingDocument) {
           ordersWithoutInvoice++;
@@ -412,7 +397,7 @@ export async function processData(data: any) {
             step: "invoice",
             orderId: order.salesOrder,
             status: "skip",
-            reason: "no invoice found for soldToParty " + order.soldToParty,
+            reason: "no invoice found for delivery " + deliveryRaw.deliveryDocument,
           });
         } else {
           const invoice = await tx.invoice.upsert({
@@ -425,7 +410,7 @@ export async function processData(data: any) {
           });
 
           // ── 7. PAYMENT ──
-          const paymentRaw = paymentMap.get(invoiceRaw.billingDocument);
+          const paymentRaw = paymentMap.get(invoiceRaw.accountingDocument);
           
           if (!paymentRaw) {
             ordersWithoutPayment++;
@@ -434,8 +419,8 @@ export async function processData(data: any) {
               orderId: order.salesOrder,
               status: "skip",
               reason:
-                "no payment found for billingDocument " +
-                invoiceRaw.billingDocument,
+                "no payment found for accountingDocument " +
+                invoiceRaw.accountingDocument,
             });
           } else {
             // Derive status from clearingDate presence (typed enum)
