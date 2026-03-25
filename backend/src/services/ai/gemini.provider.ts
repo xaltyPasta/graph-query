@@ -3,7 +3,7 @@ import { AIProvider } from "./ai.provider.interface";
 
 export class GeminiProvider implements AIProvider {
   private genAI: GoogleGenerativeAI;
-  private defaultModel = "gemini-2-flash";
+  private defaultModel = "gemini-2.5-pro";
 
   constructor() {
     if (!process.env.GEMINI_API_KEY) {
