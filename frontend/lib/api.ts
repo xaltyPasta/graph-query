@@ -28,7 +28,7 @@ export interface QueryResponse {
   error?: string;
 }
 
-const BASE_URL = process.env.VITE_BACKEND_URL
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL
 
 export async function fetchGraphData(): Promise<GraphData> {
   const url = new URL(`${BASE_URL}/api/graph`);
