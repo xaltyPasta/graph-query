@@ -1,11 +1,19 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "types": ["node"],
-    "module": "commonjs",
+    "module": "NodeNext", // Modern way to handle modules
+    "moduleResolution": "NodeNext", // Replaces node10, no deprecation error
     "rootDir": "./src",
     "outDir": "./dist",
     "esModuleInterop": true,
-    "strict": true
-  }
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true
+  },
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
