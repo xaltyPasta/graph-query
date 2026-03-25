@@ -28,8 +28,10 @@ export interface QueryResponse {
   error?: string;
 }
 
+const BASE_URL = process.env.VITE_BACKEND_URL
+
 export async function fetchGraphData(): Promise<GraphData> {
-  const url = new URL("http://localhost:5000/api/graph");
+  const url = new URL(`${BASE_URL}/api/graph`);
 
   const response = await fetch(url.toString(), {
     headers: {
@@ -50,8 +52,8 @@ export async function fetchGraphData(): Promise<GraphData> {
 }
 
 export async function executeQuery(question: string): Promise<QueryResponse> {
-  const url = new URL("http://localhost:5000/api/query");
-  
+  const url = new URL(`${BASE_URL}/api/query`);
+
   const response = await fetch(url.toString(), {
     method: "POST",
     headers: {
@@ -66,7 +68,7 @@ export async function executeQuery(question: string): Promise<QueryResponse> {
   }
 
   const result = await response.json();
-  
+
   // Unwrap the robust backend format
   return {
     answer: result.answer || "No text available.",
