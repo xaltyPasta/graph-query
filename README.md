@@ -9,6 +9,8 @@ A high-performance natural language query interface designed to visualize and tr
 ![alt text](image.png)
 ![alt text](image-1.png)
 ![alt text](image-2.png)
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/a27348d6-bdd6-45c3-846a-ecfa40ef5195" />
+
 ---
 
 ## ✨ Features
